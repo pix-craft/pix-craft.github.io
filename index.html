@@ -10,44 +10,50 @@
 <style>
 :root{--bg:#0f172a;--card:#e0f2fe;--accent:#22c55e}
 *{box-sizing:border-box}
-body{margin:0;font-family:'Press Start 2P', monospace;background:var(--bg);color:white}
+body{margin:0;font-family:'Press Start 2P', monospace;background:var(--bg);color:white;-webkit-font-smoothing:antialiased}
 
 header{position:sticky;top:0;background:#020617;padding:12px;display:flex;flex-direction:column;align-items:center;gap:10px}
 .logo{color:var(--accent);font-size:18px;cursor:pointer}
 .search{width:100%;max-width:400px;padding:10px;border:4px solid black;font-family:inherit}
 
 .account{background:var(--card);color:black;padding:10px;border:4px solid black;cursor:pointer;width:100%;max-width:400px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px}
-.account img{width:24px;height:24px;border-radius:50%}
+.account img{width:28px;height:28px;border-radius:50%}
 
 main{padding:20px;text-align:center}
 .card{background:var(--card);color:black;padding:20px;border:6px solid black;margin-top:20px}
 
-/* MENU */
+/* MENU - full screen */
 .menu{
   position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#e0f2fe;
+  inset:0;
+  background:linear-gradient(180deg,#e6f7ff 0%, #ffffff 100%);
   border-top:6px solid black;
-  padding:20px;
+  padding:30px;
   display:none;
   flex-direction:column;
-  gap:15px;
+  gap:18px;
   color:black;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
 }
 
-.menu button{
-  font-family:'Press Start 2P', monospace;
-  padding:12px;
-  border:4px solid black;
-  background:white;
-  cursor:pointer;
-}
+.menu .title{font-size:14px;margin-bottom:8px}
+.menu button{font-family:'Press Start 2P',monospace;padding:14px 18px;border:4px solid black;background:#fff;cursor:pointer}
+.logout{background:#ef4444;color:white;border:4px solid #000;font-size:13px;padding:14px 18px}
 
-.logout{
-  background:#ef4444;
-  color:white;
+/* LOGIN MODAL */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:1000;padding:18px
+}
+.modal-box{background:#eaf6ff;padding:20px;border:6px solid #000;max-width:420px;width:100%;text-align:center}
+.modal-box .hint{font-size:12px;margin-top:12px}
+.modal-box .close{margin-top:12px;padding:10px;border:4px solid #000;background:#fff;cursor:pointer}
+
+/* responsive tweaks */
+@media(max-width:420px){
+  .account img{width:22px;height:22px}
+  .logout{font-size:12px;padding:12px 14px}
 }
 </style>
 </head>
@@ -66,10 +72,24 @@ main{padding:20px;text-align:center}
   </div>
 </main>
 
-<!-- MENU COMPTE -->
+<!-- MENU COMPTE (FULLSCREEN) -->
 <div class="menu" id="menu">
-  <button onclick="closeMenu()">Fermer</button>
+  <div class="title" id="menuUser"></div>
+  <!-- autres éléments du menu ici -->
   <button class="logout" onclick="logout()">Se déconnecter</button>
+  <button onclick="closeMenu()">Fermer</button>
+</div>
+
+<!-- LOGIN MODAL (si prompt ne s'affiche pas on montre le bouton Google ici) -->
+<div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div id="modalContent">
+      <div style="font-size:13px">Connecte-toi avec Google</div>
+      <div id="googleBtn" style="margin-top:12px"></div>
+      <div class="hint">Si le bouton Google n'apparaît pas, vérifie ton origin et ton client ID.</div>
+    </div>
+    <button class="close" onclick="closeLoginModal()">Fermer</button>
+  </div>
 </div>
 
 <script>
@@ -82,70 +102,113 @@ function goHome(){
 
 function accountClick(){
   if(!userData){
-    // connexion directe Google (pas de bouton affiché)
-    google.accounts.id.initialize({
-      client_id: CLIENT_ID,
-      callback: handleCredentialResponse
-    });
-
-    google.accounts.id.prompt();
+    // attempt One-Tap / prompt first
+    try{
+      if(window.google && google.accounts && google.accounts.id){
+        google.accounts.id.initialize({ client_id: CLIENT_ID, callback: handleCredentialResponse, ux_mode: 'popup' });
+        // try to show the prompt (may be suppressed by Google for various reasons)
+        google.accounts.id.prompt((notification)=>{
+          // notification.isNotDisplayed() etc.
+          if(notification.isNotDisplayed() || notification.isSkippedMoment()){
+            // show visible modal with button fallback
+            openLoginModal();
+            renderGoogleButton();
+          }
+        });
+      } else {
+        // library not loaded: show modal which will try to render when ready
+        openLoginModal();
+        renderGoogleButton();
+      }
+    }catch(e){
+      console.error(e);
+      openLoginModal();
+      renderGoogleButton();
+    }
   } else {
     openMenu();
   }
 }
 
+function openMenu(){
+  const menu = document.getElementById('menu');
+  document.getElementById('menuUser').textContent = userData ? (userData.name || 'Utilisateur') : '';
+  menu.style.display = 'flex';
+}
+function closeMenu(){ document.getElementById('menu').style.display = 'none'; }
+
+function openLoginModal(){ document.getElementById('loginModal').style.display = 'flex'; }
+function closeLoginModal(){ document.getElementById('loginModal').style.display = 'none'; }
+
+function renderGoogleButton(){
+  // render only once
+  const target = document.getElementById('googleBtn');
+  if(!window.google) return;
+  if(target.dataset.rendered) return;
+  try{
+    google.accounts.id.renderButton(target, { theme: 'outline', size: 'large', text: 'signin_with' });
+    target.dataset.rendered = '1';
+  }catch(e){
+    console.error('Impossible de renderButton', e);
+  }
+}
+
 function handleCredentialResponse(response){
-  const data = parseJwt(response.credential);
-  localStorage.setItem("user", JSON.stringify(data));
-  userData = data;
-  showUser(data);
+  try{
+    const data = parseJwt(response.credential);
+    localStorage.setItem('user', JSON.stringify(data));
+    userData = data;
+    showUser(data);
+    closeLoginModal();
+    openMenu();
+  }catch(e){
+    console.error('Erreur réponse credential', e);
+  }
 }
 
 function showUser(user){
-  const btn = document.getElementById("accountBtn");
-  btn.innerHTML = "";
-
+  const btn = document.getElementById('accountBtn');
+  btn.innerHTML = '';
   if(user.picture){
-    const img = document.createElement("img");
-    img.src = user.picture;
-    btn.appendChild(img);
+    const img = document.createElement('img'); img.src = user.picture; img.alt='avatar'; btn.appendChild(img);
   }
-
-  const name = document.createElement("span");
-  name.textContent = user.name;
-  btn.appendChild(name);
-}
-
-function openMenu(){
-  document.getElementById("menu").style.display = "flex";
-}
-
-function closeMenu(){
-  document.getElementById("menu").style.display = "none";
+  const name = document.createElement('span'); name.textContent = user.name || 'Utilisateur'; btn.appendChild(name);
+  // clicking the account opens the menu
+  btn.onclick = openMenu;
 }
 
 function logout(){
-  localStorage.removeItem("user");
-  location.reload();
+  localStorage.removeItem('user');
+  userData = null;
+  // reset account button
+  const btn = document.getElementById('accountBtn');
+  btn.innerHTML = 'Se connecter';
+  btn.onclick = accountClick;
+  closeMenu();
 }
 
 function parseJwt(token){
   const base64Url = token.split('.')[1];
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c){
-    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c){ return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
   return JSON.parse(jsonPayload);
 }
 
-// auto login
-window.onload = () => {
-  const savedUser = localStorage.getItem("user");
-  if(savedUser){
-    userData = JSON.parse(savedUser);
-    showUser(userData);
-  }
-};
+// auto login if user in storage
+window.addEventListener('load', ()=>{
+  const saved = localStorage.getItem('user');
+  if(saved){ userData = JSON.parse(saved); showUser(userData); }
+
+  // if google library loads later, try to render button in modal when it opens
+  const t = setInterval(()=>{
+    if(window.google && google.accounts && google.accounts.id){
+      clearInterval(t);
+      // if modal already open, render
+      if(document.getElementById('loginModal').style.display === 'flex') renderGoogleButton();
+    }
+  },200);
+  setTimeout(()=>clearInterval(t),10000);
+});
 </script>
 
 </body>
