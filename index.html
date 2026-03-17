@@ -13,18 +13,42 @@
 body{margin:0;font-family:'Press Start 2P', monospace;background:var(--bg);color:white}
 
 header{position:sticky;top:0;background:#020617;padding:12px;display:flex;flex-direction:column;align-items:center;gap:10px}
-
 .logo{color:var(--accent);font-size:18px;cursor:pointer}
-
 .search{width:100%;max-width:400px;padding:10px;border:4px solid black;font-family:inherit}
 
 .account{background:var(--card);color:black;padding:10px;border:4px solid black;cursor:pointer;width:100%;max-width:400px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px}
-
 .account img{width:24px;height:24px;border-radius:50%}
 
 main{padding:20px;text-align:center}
-
 .card{background:var(--card);color:black;padding:20px;border:6px solid black;margin-top:20px}
+
+/* MENU */
+.menu{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#e0f2fe;
+  border-top:6px solid black;
+  padding:20px;
+  display:none;
+  flex-direction:column;
+  gap:15px;
+  color:black;
+}
+
+.menu button{
+  font-family:'Press Start 2P', monospace;
+  padding:12px;
+  border:4px solid black;
+  background:white;
+  cursor:pointer;
+}
+
+.logout{
+  background:#ef4444;
+  color:white;
+}
 </style>
 </head>
 <body>
@@ -32,46 +56,48 @@ main{padding:20px;text-align:center}
 <header>
   <div class="logo" onclick="goHome()">PiX'CRAFT</div>
   <input class="search" placeholder="Rechercher...">
-  <div class="account" onclick="login()" id="accountBtn">Se connecter</div>
+  <div class="account" onclick="accountClick()" id="accountBtn">Se connecter</div>
 </header>
 
 <main id="home">
   <h2>Accueil</h2>
   <div class="card">
-    Bienvenue sur PiX'CRAFT 🎮<br><br>
-    Clique sur "Se connecter" pour utiliser ton compte Google.
-
-    <div id="googleBtn" style="margin-top:15px"></div>
+    Bienvenue sur PiX'CRAFT 🎮
   </div>
 </main>
 
+<!-- MENU COMPTE -->
+<div class="menu" id="menu">
+  <button onclick="closeMenu()">Fermer</button>
+  <button class="logout" onclick="logout()">Se déconnecter</button>
+</div>
+
 <script>
 const CLIENT_ID = "667765343545-2mcoq2s9meqraha53rboqa91qlosbtf0.apps.googleusercontent.com";
+let userData = null;
 
 function goHome(){
   document.getElementById('home').scrollIntoView({behavior:'smooth'});
 }
 
-function login(){
-  google.accounts.id.initialize({
-    client_id: CLIENT_ID,
-    callback: handleCredentialResponse
-  });
+function accountClick(){
+  if(!userData){
+    // connexion directe Google (pas de bouton affiché)
+    google.accounts.id.initialize({
+      client_id: CLIENT_ID,
+      callback: handleCredentialResponse
+    });
 
-  google.accounts.id.renderButton(
-    document.getElementById("googleBtn"),
-    { theme: "outline", size: "large" }
-  );
-
-  google.accounts.id.prompt();
+    google.accounts.id.prompt();
+  } else {
+    openMenu();
+  }
 }
 
 function handleCredentialResponse(response){
   const data = parseJwt(response.credential);
-
-  // Sauvegarde
   localStorage.setItem("user", JSON.stringify(data));
-
+  userData = data;
   showUser(data);
 }
 
@@ -88,8 +114,14 @@ function showUser(user){
   const name = document.createElement("span");
   name.textContent = user.name;
   btn.appendChild(name);
+}
 
-  btn.onclick = logout;
+function openMenu(){
+  document.getElementById("menu").style.display = "flex";
+}
+
+function closeMenu(){
+  document.getElementById("menu").style.display = "none";
 }
 
 function logout(){
@@ -106,11 +138,12 @@ function parseJwt(token){
   return JSON.parse(jsonPayload);
 }
 
-// Auto login si déjà connecté
+// auto login
 window.onload = () => {
   const savedUser = localStorage.getItem("user");
   if(savedUser){
-    showUser(JSON.parse(savedUser));
+    userData = JSON.parse(savedUser);
+    showUser(userData);
   }
 };
 </script>
