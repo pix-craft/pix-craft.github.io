@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PiX'CRAFT</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{--bg:#0f172a;--card:#e0f2fe;--accent:#22c55e;--dark:#020617}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Press Start 2P', monospace;background:var(--bg);color:white}
+header{position:sticky;top:0;z-index:10;background:#020617;display:flex;align-items:center;justify-content:space-between;padding:12px;flex-wrap:wrap}
+.logo{font-size:14px;color:var(--accent);text-decoration:none}
+.search-box{flex:1;display:flex;justify-content:center;margin:10px 0}
+.search-box input{width:100%;max-width:400px;padding:10px;border:4px solid black;font-family:inherit}
+.account{background:var(--card);color:black;padding:8px 12px;border:4px solid black;cursor:pointer;font-size:10px;text-align:center}
+main{padding:20px;text-align:center}
+.card{background:var(--card);color:black;padding:20px;border:6px solid black;margin-top:20px}
+#googleBtn{margin-top:10px;display:flex;justify-content:center}
+@media(max-width:600px){header{flex-direction:column;align-items:stretch}.logo{text-align:center;margin-bottom:8px}.account{width:100%}}
+</style>
+</head>
+<body>
+
+<header>
+<a href="#" class="logo" onclick="goHome()">PiX'CRAFT</a>
+
+<div class="search-box">
+<input type="text" placeholder="Rechercher..." id="search">
+</div>
+
+<div class="account" onclick="showLogin()">Compte</div>
+</header>
+
+<main id="home">
+<h2>Accueil</h2>
+<div class="card">
+Bienvenue sur PiX'CRAFT 🎮<br><br>
+Clique sur "Compte" pour te connecter avec Google.
+
+<div id="googleBtn"></div>
+</div>
+</main>
+
+<script>
+const CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+function goHome(){
+  document.getElementById('home').scrollIntoView({behavior:'smooth'});
+}
+
+function showLogin(){
+  if(!window.google){
+    alert("Google n'est pas chargé");
+    return;
+  }
+
+  google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: handleCredentialResponse
+  });
+
+  google.accounts.id.renderButton(
+    document.getElementById("googleBtn"),
+    { theme: "outline", size: "large" }
+  );
+
+  google.accounts.id.prompt();
+}
+
+function handleCredentialResponse(response){
+  const data = parseJwt(response.credential);
+  alert("Connecté : " + data.name);
+}
+
+function parseJwt(token){
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c){
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+  return JSON.parse(jsonPayload);
+}
+</script>
+
+</body>
+</html>
