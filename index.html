@@ -1,94 +1,395 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>PiX'CRAFT</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
-body{margin:0;font-family:'Press Start 2P', monospace;background:#0f172a;color:white}
-header{background:#020617;padding:12px;display:flex;flex-direction:column;align-items:center;gap:10px}
-.logo{color:#22c55e;cursor:pointer}
-.search{width:100%;max-width:400px;padding:10px;border:4px solid black}
-.account{background:#e0f2fe;color:black;padding:10px;border:4px solid black;cursor:pointer;width:100%;max-width:400px;text-align:center}
+:root{
+  --bg: #0f172a;
+  --accent: #22c55e;
+  --card: #e0f2fe;
+  --pixel-border: 6px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: 'Press Start 2P', monospace;
+  background: var(--bg);
+  color: white;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* header */
+header{
+  background:#020617;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+
+/* pixel logo */
+.logo{
+  font-family: 'Press Start 2P', monospace;
+  font-size:18px;
+  color:var(--accent);
+  cursor:pointer;
+  user-select:none;
+  /* chunky pixel shadow */
+  text-shadow:
+    2px 2px 0 #000,
+    4px 4px 0 rgba(0,0,0,0.55);
+}
+
+/* search (pixel style) */
+.search{
+  width:100%;
+  max-width:420px;
+  padding:12px 14px;
+  border: var(--pixel-border) solid #000;
+  background: linear-gradient(180deg,#ffffff 0%, #dfefff 100%);
+  outline:none;
+  font-family:'Press Start 2P', monospace;
+  font-size:12px;
+  color:#000;
+  letter-spacing:1px;
+  text-shadow: 1px 1px 0 #fff; /* subtle */
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
+}
+
+/* account button (pixel) */
+.account{
+  width:100%;
+  max-width:420px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:10px 12px;
+  border: var(--pixel-border) solid #000;
+  background: linear-gradient(180deg,#fff 0%, #e6f7ff 100%);
+  color:#000;
+  cursor:pointer;
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
+  user-select:none;
+  text-shadow:
+    1px 1px 0 #fff,
+    2px 2px 0 rgba(0,0,0,0.25);
+}
+.account img{width:26px;height:26px;image-rendering:pixelated;border:3px solid #000;border-radius:4px}
+
+/* main */
 main{padding:20px;text-align:center}
-.card{background:#e0f2fe;color:black;padding:20px;border:6px solid black;margin-top:20px}
-.menu{position:fixed;inset:0;background:white;color:black;display:none;flex-direction:column;justify-content:center;align-items:center;gap:20px}
-.logout{background:#ef4444;color:black;border:4px solid black;padding:12px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center}
-.modal-box{background:white;color:black;padding:20px;border:6px solid black;text-align:center}
+.card{background:var(--card);color:black;padding:20px;border:6px solid #000;margin-top:20px}
+
+/* full screen menu */
+.menu{
+  position:fixed;
+  inset:0;
+  background: linear-gradient(180deg,#e6f7ff 0%, #ffffff 100%);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  z-index:1000;
+  border-top:6px solid #000;
+}
+.menu .title{font-size:14px;color:#000;margin-bottom:6px}
+.menu button{
+  font-family:'Press Start 2P';
+  padding:14px 20px;
+  border:4px solid #000;
+  background:#fff;
+  cursor:pointer;
+}
+.logout{
+  background:#ef4444;
+  color:black; /* texte noir demandé */
+  border:4px solid #000;
+}
+
+/* login modal (fallback) */
+.modal{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.7);
+  z-index:1100;
+}
+.modal-box{
+  width:92%;
+  max-width:440px;
+  background:#eaf6ff;
+  border:6px solid #000;
+  padding:18px;
+  text-align:center;
+  color:black;
+}
+.modal-box .hint{font-size:12px;margin-top:10px}
+.modal-box .close{
+  margin-top:12px;padding:10px;border:4px solid #000;background:#fff;cursor:pointer;
+}
+
+/* results */
+#results{background:var(--card);color:black;padding:18px;border:6px solid #000;max-width:900px;margin:18px auto}
+
+/* small screens */
+@media (max-width:420px){
+  .search{max-width:320px}
+  .account{max-width:320px}
+  .account img{width:22px;height:22px}
+}
 </style>
 </head>
 <body>
 
 <header>
-<div class="logo">PiX'CRAFT</div>
-<input class="search" id="search" placeholder="Rechercher..." onkeydown="if(event.key==='Enter'){search()}">
-<div class="account" onclick="login()" id="accountBtn">Se connecter</div>
+  <div class="logo" onclick="goHome()">PiX'CRAFT</div>
+
+  <input id="search" class="search" placeholder="Rechercher (versions, serveurs, joueurs)..."
+         onkeydown="if(event.key==='Enter'){search();}" />
+
+  <div id="accountBtn" class="account" onclick="accountClick()">Se connecter</div>
 </header>
 
 <main>
-<div class="card" id="results">🔎 Appuie sur Entrée pour rechercher</div>
+  <h2 style="font-size:16px">Accueil</h2>
+  <div id="results" class="card">🔎 Appuie sur Entrée pour rechercher</div>
 </main>
 
-<div class="menu" id="menu">
-<button>Changer la langue</button>
-<button class="logout" onclick="logout()">Se déconnecter</button>
-<button onclick="closeMenu()">Fermer</button>
+<!-- Menu plein écran -->
+<div id="menu" class="menu" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="title" id="menuUser"></div>
+  <button onclick="changeLanguage()">Changer la langue</button>
+  <button class="logout" onclick="logout()">Se déconnecter</button>
+  <button onclick="closeMenu()">Fermer</button>
 </div>
 
-<div class="modal" id="setupModal">
-<div class="modal-box">
-<div>Choisis ta langue</div>
-<select id="lang"><option>Français</option><option>English</option></select>
-<div>Ton pseudo</div>
-<input id="pseudo">
-<button onclick="saveSetup()">Valider</button>
-</div>
+<!-- Modal fallback pour afficher le bouton Google si prompt échoue -->
+<div id="loginModal" class="modal" aria-hidden="true">
+  <div class="modal-box" role="document">
+    <div style="font-size:13px">Se connecter avec Google</div>
+    <div id="googleBtn" style="margin-top:12px"></div>
+    <div class="hint">Si le bouton n'apparaît pas, vérifie la console ou ton origin.</div>
+    <button class="close" onclick="closeLoginModal()">Fermer</button>
+  </div>
 </div>
 
 <script>
-const CLIENT_ID="667765343545-2mcoq2s9meqraha53rboqa91qlosbtf0.apps.googleusercontent.com";
-let user=null;
+/* ---- CONFIG ---- */
+const CLIENT_ID = "667765343545-2mcoq2s9meqraha53rboqa91qlosbtf0.apps.googleusercontent.com"; // remplace si besoin
 
-function login(){
-  google.accounts.id.initialize({client_id:CLIENT_ID,callback:handle});
-  google.accounts.id.prompt();
+/* ---- données de recherche (placeholder) ---- */
+const versions = ["1.20","1.19","1.18"];
+const servers  = ["Hypixel","Mineplex","CubeCraft"];
+const players  = ["Steve","Alex","Notch"];
+
+/* ---- état ---- */
+let currentUser = null;
+let googleRendered = false;
+
+/* ---- utilitaires UI ---- */
+function goHome(){ document.querySelector('main').scrollIntoView({behavior:'smooth'}) }
+
+function openMenu(){
+  document.getElementById('menuUser').textContent = currentUser ? (currentUser.name || 'Utilisateur') : '';
+  const m = document.getElementById('menu');
+  m.style.display = 'flex';
+  m.setAttribute('aria-hidden','false');
+}
+function closeMenu(){
+  const m = document.getElementById('menu');
+  m.style.display = 'none';
+  m.setAttribute('aria-hidden','true');
 }
 
-function handle(res){
-  user=parseJwt(res.credential);
-  localStorage.setItem('user',JSON.stringify(user));
-  document.getElementById('accountBtn').innerText=user.name;
-  if(!localStorage.getItem('setup')){
-    document.getElementById('setupModal').style.display='flex';
+/* ---- login modal ---- */
+function openLoginModal(){
+  document.getElementById('loginModal').style.display = 'flex';
+  document.getElementById('loginModal').setAttribute('aria-hidden','false');
+  // try render button if lib ready
+  tryRenderButton();
+}
+function closeLoginModal(){
+  document.getElementById('loginModal').style.display = 'none';
+  document.getElementById('loginModal').setAttribute('aria-hidden','true');
+}
+
+function tryRenderButton(){
+  const target = document.getElementById('googleBtn');
+  if(!window.google) return;
+  if(googleRendered) return;
+  try{
+    google.accounts.id.renderButton(target, { theme: 'outline', size: 'large', text: 'signin_with' });
+    googleRendered = true;
+  }catch(e){
+    console.error('renderButton failed', e);
   }
 }
 
-function saveSetup(){
-  localStorage.setItem('setup','ok');
-  document.getElementById('setupModal').style.display='none';
+/* ---- Google Identity init + fallback behaviour ---- */
+function initGoogle(){
+  if(!(window.google && google.accounts && google.accounts.id)) return false;
+  try{
+    google.accounts.id.initialize({
+      client_id: CLIENT_ID,
+      callback: handleCredentialResponse,
+      ux_mode: 'popup'
+    });
+    return true;
+  }catch(e){
+    console.error('GSI initialize failed', e);
+    return false;
+  }
 }
 
-function logout(){localStorage.clear();location.reload()}
-function closeMenu(){document.getElementById('menu').style.display='none'}
+/* When user clicks the account button */
+function accountClick(){
+  // if already logged -> open menu
+  if(currentUser){
+    openMenu();
+    return;
+  }
 
+  // ensure library initialized
+  const ready = initGoogle();
+
+  if(ready){
+    // try prompt (One-Tap); callback receives a notification
+    google.accounts.id.prompt((notification) => {
+      // if prompt is not displayed (suppressed) or skipped -> show modal fallback
+      if(notification.isNotDisplayed() || notification.isSkippedMoment()){
+        openLoginModal();
+      }
+      // if prompt displayed, sign-in may happen via handleCredentialResponse
+    });
+    // Also attempt to render button but keep it inside modal only (do not show unless fallback)
+    // We will render lazily if modal opens
+  } else {
+    // library not ready -> show modal with button fallback which will try to render when lib loads
+    openLoginModal();
+  }
+}
+
+function handleCredentialResponse(response){
+  try{
+    const payload = parseJwt(response.credential);
+    currentUser = payload;
+    // save minimal info
+    localStorage.setItem('user', JSON.stringify({name: payload.name, picture: payload.picture, sub: payload.sub}));
+    // update UI
+    showUser(payload);
+    closeLoginModal();
+    openMenu();
+  }catch(e){
+    console.error('credential handling failed', e);
+  }
+}
+
+/* show logged user in account button */
+function showUser(user){
+  const btn = document.getElementById('accountBtn');
+  btn.innerHTML = '';
+  if(user.picture){
+    const img = document.createElement('img');
+    img.src = user.picture;
+    img.alt = 'avatar';
+    img.style.imageRendering = 'pixelated';
+    btn.appendChild(img);
+  }
+  const span = document.createElement('span');
+  span.textContent = user.name || 'Utilisateur';
+  btn.appendChild(span);
+  // clicking opens menu
+  btn.onclick = openMenu;
+}
+
+/* logout */
+function logout(){
+  localStorage.removeItem('user');
+  currentUser = null;
+  // reset account button
+  const btn = document.getElementById('accountBtn');
+  btn.innerText = 'Se connecter';
+  btn.onclick = accountClick;
+  closeMenu();
+}
+
+/* ---- Search (Enter only) ---- */
 function search(){
-  document.getElementById('results').innerHTML="❌ Aucun résultat trouvé";
+  const q = (document.getElementById('search').value || '').trim().toLowerCase();
+  const out = document.getElementById('results');
+
+  // require Enter (already handled by onkeydown). If empty, say Aucun résultat
+  if(!q){
+    out.innerHTML = '❌ Aucun résultat trouvé';
+    return;
+  }
+
+  // filter each list
+  const v = versions.filter(x => x.toLowerCase().includes(q));
+  const s = servers.filter(x => x.toLowerCase().includes(q));
+  const p = players.filter(x => x.toLowerCase().includes(q));
+
+  if(v.length===0 && s.length===0 && p.length===0){
+    out.innerHTML = '❌ Aucun résultat trouvé';
+    return;
+  }
+
+  let html = '<strong>Versions :</strong><br>' + (v.length? v.join(', ') : '—') + '<br><br>';
+  html += '<strong>Serveurs :</strong><br>' + (s.length? s.join(', ') : '—') + '<br><br>';
+  html += '<strong>Joueurs :</strong><br>' + (p.length? p.join(', ') : '—');
+  out.innerHTML = html;
 }
 
-function parseJwt(t){
-  const b=t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-  return JSON.parse(decodeURIComponent(atob(b).split('').map(c=>'%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+/* ---- tiny jwt parser ---- */
+function parseJwt(token){
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c){
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+  return JSON.parse(jsonPayload);
 }
 
-window.onload=()=>{
-  const u=localStorage.getItem('user');
-  if(u){user=JSON.parse(u);document.getElementById('accountBtn').innerText=user.name}
-}
+/* ---- on load ---- */
+window.addEventListener('load', ()=>{
+  // restore user if present
+  const saved = localStorage.getItem('user');
+  if(saved){
+    try{
+      const u = JSON.parse(saved);
+      currentUser = u;
+      showUser(u);
+    }catch(e){ console.warn('saved user parse failed', e); }
+  }
+
+  // try initialize google lib when it loads (the lib is async)
+  const t = setInterval(()=>{
+    if(window.google && google.accounts && google.accounts.id){
+      clearInterval(t);
+      initGoogle();
+      // if modal open, render button inside it
+      if(document.getElementById('loginModal').style.display === 'flex'){
+        tryRenderButton();
+      }
+    }
+  },200);
+  // stop trying after 10s
+  setTimeout(()=>clearInterval(t),10000);
+});
 </script>
-
 </body>
 </html>
