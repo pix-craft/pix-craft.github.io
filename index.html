@@ -3,22 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BlockCraft Prototype</title>
+  <title>PiX'CRAFT — Prototype</title>
   <link rel="icon" href="/img/favicon.ico" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="start-screen" class="start-screen">
+  <div id="start-screen" class="start-screen" role="main">
     <header class="header">
-      <img src="/img/logo.png" alt="Logo du jeu" class="logo" />
+      <div class="title-row">
+        <h1 class="game-title">PiX'CRAFT</h1>
+      </div>
+      <img src="/img/logo.png" alt="Logo PiX'CRAFT" class="logo" />
     </header>
 
     <main class="main">
-      <div class="menu">
-        <button id="play-btn" class="btn primary">Jouer</button>
-        <button id="settings-btn" class="btn">Paramètres</button>
-        <button id="shop-btn" class="btn">Boutique</button>
-        <button id="account-btn" class="btn">Compte</button>
+      <div class="menu" aria-label="Menu principal">
+        <button id="play-btn" class="btn primary" aria-haspopup="dialog" aria-controls="play-popup">JOUER</button>
+        <button id="settings-btn" class="btn" aria-haspopup="dialog" aria-controls="settings-popup">PARAMÈTRES</button>
+        <button id="shop-btn" class="btn">BOUTIQUE</button>
+        <button id="account-btn" class="btn">COMPTE</button>
       </div>
       <div class="version">Bêta 3.2</div>
     </main>
@@ -26,14 +29,14 @@
     <div id="tips" class="tips" aria-live="polite"></div>
   </div>
 
-  <!-- Play popup (hidden by default) -->
+  <!-- Play popup overlay (animated blocky morph from button) -->
   <div id="play-popup" class="popup-overlay" aria-hidden="true">
     <div class="popup play-popup" role="dialog" aria-modal="true" aria-label="Choix de jeu">
-      <h2>Jouer</h2>
+      <h2 class="popup-title">JOUER</h2>
       <div class="popup-actions">
-        <button id="solo-btn" class="btn">Solo</button>
-        <button id="multi-btn" class="btn">Multijoueur</button>
-        <button id="close-play-btn" class="btn">Fermer</button>
+        <button id="solo-btn" class="btn blocky">SOLO</button>
+        <button id="multi-btn" class="btn blocky">MULTIJOUEUR</button>
+        <button id="close-play-btn" class="btn blocky">FERMER</button>
       </div>
     </div>
   </div>
@@ -42,29 +45,29 @@
   <div id="settings-popup" class="settings-overlay" aria-hidden="true">
     <div class="settings-panel" role="dialog" aria-modal="true" aria-label="Paramètres">
       <header class="settings-header">
-        <h2>Paramètres</h2>
-        <button id="close-settings" class="btn small">Fermer</button>
+        <h2>PARAMÈTRES</h2>
+        <button id="close-settings" class="btn small blocky">FERMER</button>
       </header>
 
-      <nav class="settings-tabs" role="tablist">
-        <button class="tab active" data-tab="audio">Audio</button>
-        <button class="tab" data-tab="video">Image</button>
-        <button class="tab" data-tab="controls">Contrôles</button>
-        <button class="tab" data-tab="version">Version</button>
+      <nav class="settings-tabs" role="tablist" aria-label="Onglets paramètres">
+        <button class="tab active blocky" data-tab="audio" role="tab" aria-selected="true">Audio</button>
+        <button class="tab blocky" data-tab="video" role="tab">Image</button>
+        <button class="tab blocky" data-tab="controls" role="tab">Contrôles</button>
+        <button class="tab blocky" data-tab="version" role="tab">Version</button>
       </nav>
 
       <section class="settings-content">
-        <div class="tab-panel" id="audio">
+        <div class="tab-panel" id="audio" role="tabpanel">
           <label>Volume maître <input type="range" min="0" max="100" value="80" /></label>
           <label>Musique <input type="range" min="0" max="100" value="60" /></label>
         </div>
 
-        <div class="tab-panel hidden" id="video">
+        <div class="tab-panel hidden" id="video" role="tabpanel">
           <label>Résolution <select><option>Auto</option><option>1280x720</option><option>1920x1080</option></select></label>
           <label>Qualité graphique <select><option>Faible</option><option>Moyenne</option><option>Élevée</option></select></label>
         </div>
 
-        <div class="tab-panel hidden" id="controls">
+        <div class="tab-panel hidden" id="controls" role="tabpanel">
           <p>Touches personnalisables</p>
           <label>Avancer <input value="Z" /></label>
           <label>Reculer <input value="S" /></label>
@@ -72,7 +75,7 @@
           <label>Droite <input value="D" /></label>
         </div>
 
-        <div class="tab-panel hidden" id="version">
+        <div class="tab-panel hidden" id="version" role="tabpanel">
           <p>Version du client</p>
           <p class="muted">Bêta 3.2</p>
           <p>Notes de version et informations de build seront affichées ici.</p>
