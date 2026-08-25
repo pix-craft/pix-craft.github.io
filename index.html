@@ -3,33 +3,46 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PiX'CRAFT — Prototype</title>
+  <title>PiX'CRAFT</title>
   <link rel="icon" href="/img/favicon.ico" />
   <link rel="stylesheet" href="styles.css" />
+  <!-- Three.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
   <div id="start-screen" class="start-screen" role="main">
     <header class="header">
-      <div class="title-row">
-        <h1 class="game-title">PiX'CRAFT</h1>
-      </div>
       <img src="/img/logo.png" alt="Logo PiX'CRAFT" class="logo" />
+      <h1 class="game-title">PiX'CRAFT</h1>
     </header>
 
     <main class="main">
-      <div class="menu" aria-label="Menu principal">
-        <button id="play-btn" class="btn primary" aria-haspopup="dialog" aria-controls="play-popup">JOUER</button>
-        <button id="settings-btn" class="btn" aria-haspopup="dialog" aria-controls="settings-popup">PARAMÈTRES</button>
-        <button id="shop-btn" class="btn">BOUTIQUE</button>
-        <button id="account-btn" class="btn">COMPTE</button>
+      <div class="left-panel">
+        <div id="game-canvas-wrap" class="canvas-wrap" aria-hidden="true">
+          <canvas id="game-canvas"></canvas>
+        </div>
       </div>
-      <div class="version">Bêta 3.2</div>
+
+      <div class="right-panel">
+        <div class="menu" aria-label="Menu principal">
+          <button id="play-btn" class="btn primary" aria-haspopup="dialog" aria-controls="play-popup">JOUER</button>
+          <button id="settings-btn" class="btn" aria-haspopup="dialog" aria-controls="settings-popup">PARAMÈTRES</button>
+          <button id="shop-btn" class="btn">BOUTIQUE</button>
+          <button id="account-btn" class="btn">COMPTE</button>
+        </div>
+
+        <div class="meta">
+          <div class="version">Bêta 3.2</div>
+          <div class="hint">Appuyez sur K pour plein écran</div>
+        </div>
+      </div>
     </main>
 
     <div id="tips" class="tips" aria-live="polite"></div>
   </div>
 
-  <!-- Play popup overlay (animated blocky morph from button) -->
+  <!-- Play popup overlay -->
   <div id="play-popup" class="popup-overlay" aria-hidden="true">
     <div class="popup play-popup" role="dialog" aria-modal="true" aria-label="Choix de jeu">
       <h2 class="popup-title">JOUER</h2>
@@ -58,27 +71,28 @@
 
       <section class="settings-content">
         <div class="tab-panel" id="audio" role="tabpanel">
-          <label>Volume maître <input type="range" min="0" max="100" value="80" /></label>
-          <label>Musique <input type="range" min="0" max="100" value="60" /></label>
+          <label>Volume maître <input id="master-volume" type="range" min="0" max="100" value="80" /></label>
+          <label>Musique <input id="music-volume" type="range" min="0" max="100" value="60" /></label>
         </div>
 
         <div class="tab-panel hidden" id="video" role="tabpanel">
-          <label>Résolution <select><option>Auto</option><option>1280x720</option><option>1920x1080</option></select></label>
-          <label>Qualité graphique <select><option>Faible</option><option>Moyenne</option><option>Élevée</option></select></label>
+          <label>Résolution <select id="resolution"><option>Auto</option><option>1280x720</option><option>1920x1080</option></select></label>
+          <label>Qualité graphique <select id="gfx-quality"><option>Faible</option><option>Moyenne</option><option>Élevée</option></select></label>
+          <label><input id="pixelated" type="checkbox" checked /> Rendu pixelisé</label>
         </div>
 
         <div class="tab-panel hidden" id="controls" role="tabpanel">
           <p>Touches personnalisables</p>
-          <label>Avancer <input value="Z" /></label>
-          <label>Reculer <input value="S" /></label>
-          <label>Gauche <input value="Q" /></label>
-          <label>Droite <input value="D" /></label>
+          <label>Avancer <input id="key-forward" value="Z" /></label>
+          <label>Reculer <input id="key-back" value="S" /></label>
+          <label>Gauche <input id="key-left" value="Q" /></label>
+          <label>Droite <input id="key-right" value="D" /></label>
         </div>
 
         <div class="tab-panel hidden" id="version" role="tabpanel">
           <p>Version du client</p>
           <p class="muted">Bêta 3.2</p>
-          <p>Notes de version et informations de build seront affichées ici.</p>
+          <p>Build: prototype-local</p>
         </div>
       </section>
     </div>
